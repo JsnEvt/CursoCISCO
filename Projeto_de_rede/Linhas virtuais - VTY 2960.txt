@@ -1,0 +1,28 @@
+!Configuracao das linhas virtuais do switch 2960 - CISCO
+!utilizadas para aceesar remotamente o console do switch
+!nao utilizadas para monitoramento, caso necessario, usar o protocolo SMNP com SVI
+!nao e recomendado habilitar poucas linhas ou todas as linhas virtuais
+!as VTY sao desabilitadas por padrao.
+!elas dependem da configuracao do SVI
+
+enable
+configure terminal
+line vty 0 4
+login local
+password miranda@evt
+logging synchronous
+exec-timeout 5 30
+
+!e possivel configurar o tipo de acesso remoto atraves do protocolo de entrada e saida como o telnet e o SSH
+transport input all
+
+end
+
+
+!salvando mem RAM p/NVRAM
+!copy running-config startup-config
+write
+
+!visualizando
+show running-config
+
