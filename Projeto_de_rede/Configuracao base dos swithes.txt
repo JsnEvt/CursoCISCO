@@ -1,0 +1,41 @@
+Configuracao base dos swithes - cisco 2960
+
+enable
+!clock set 10:49:05 23 02 2024
+!modo global de configuracao de comandos
+configure terminal
+!hostname sw-l2-2960-2
+service password-encryption
+!habilitando o servico de marcacao de data e hora detalhado nos logs
+service timestamps log datetime msec
+!destivando a resolucao de nomes de dominio
+no ip domain-lookup
+!banner
+banner motd #AVISO: Acesso autorizado somente a funcionarios#
+!habilitando senha do tipo 5 - senha forte para acessar o modo EXEC privilegiado
+enable secret miranda@evt
+!criacao dos usuarios locais
+username jason secret miranda@evt
+username everton password miranda@evt
+username admin privilege 15 secret miranda@evt
+!acessando a linha console
+line console 0
+!forcando a fazer login local com usuarios e senhas locais do switch
+login local
+!habilitando a senha acesso tipo-7 password
+password miranda@evt
+!sincronizando mensagens de log na tela
+logging synchronous
+!habilitando o tempo de inatividade de uso do console
+exec-timeout 5 30
+!saindo de todos os niveis e voltando para o modo privilegiado
+end
+!salvando as configuracoes da memoria ram para a nvram
+write
+
+
+!visualizando as configuracoes da ram e nvram
+show running-config 
+
+
+
