@@ -1,0 +1,52 @@
+03 - Configuracao do gateway e SVI Switch 2960
+
+enable
+configure terminal
+
+!Configuracao do gateway padrao ipv4 no switch
+!ipv4 em switch layer 2 serve apenas para acesso remoto
+!switch layer 3 serve para acesso remoto ou roteamento
+!recurso necessario para administracao remota ou monitoramento
+ip default-gateway 192.168.1.254
+
+!Configuracao da interface virtual do switch SVI
+!interfaces virtuais sao criadas utilizado o recurso de VLAN
+!nao recomendado utilizar VLAN padrao para essa operacao, deve-se criar outra
+!SVI e necessario para acesso a linhas virtuais utilizando o protocolo telnet ou ssh
+interface vlan1
+
+!descricao da interface virtual
+!descricao facilita o processo de identificacao e de funcao na rede
+description Interface de gerenciamento do switch SW-L2-2960-2
+
+!Configurando o ipv4 na interface virtual
+!o ipv4 deve ser o mesmo da rede do Gateway
+!configurar a rede dos switches com enderecos diferentes
+!nao utilizar CIDR ex. .../XX
+!ATENCAO: OBSERVAR A MUDANCA DE ENDERECOS IP NOS EQUIPAMENTOS SWITCHES
+ip address 192.168.1.251 255.255.255.0
+
+!inicializando a interface virtual do switch
+!por padrao, as interfaces estao no status(desligado)
+!todas as portas tb estao no status ligada(No-Shutdown)
+no shutdown
+
+!o comando do permite executar comandos fora do seu nivel padrao
+!Ex.  sw-l2-2960-1(config-line)# do copy running-config startup-config | sw-l2-2960-1(config-line)
+end
+
+!salvando ram-nvram
+copy running-config startup-config
+
+show running-config
+
+!visualizando as configuracoes das vlans padrao do switch
+show vlan brief
+
+show ip interface brief
+
+
+
+
+ 
+
