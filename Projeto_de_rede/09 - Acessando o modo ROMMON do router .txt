@@ -1,0 +1,33 @@
+!Acessando o modo ROMMON do router 1941
+!ROMMON serve para alterar a fomo como a incializacao do cisco ios le os arquivos de configuracao
+!essa opcao e utilizada para forcar o router a nao ler as configuacoes do statup-config
+!0x2142 - nao le as configuracoes do startup-config
+!0x2102 - le normalmente as configuracoes
+!utilizado para quebrar senhas do tipo7, zerando as informacoes do dispositivo
+!tipo e mais complexo
+
+
+!enable secret para trocar as senhas
+rommon 2 > confreg 0x2142
+
+!reinicializando o router no modo rommon
+rommon 3> reset
+
+enable
+
+show version
+
+!e possivel resetar o switch tb.
+!deixar o switch 3560 ou 2960 inicializar normalmente
+!apos a inicializacao, pressionar o botao MODE pressionado por aproximadamente 15/20 sec.
+!o switch vai entrar no modo de rommon e sera reinicializado automaticamente.
+
+!caso nao volte para o estado de fabrica, fazer o seguinte:
+!na tela de inicializacao, na mensagem de harwarem pressionar o botao mode para cancelar o carregamento do ios
+!no modo rommon, digitar o comando: flash_init
+!listar o contudo da flash: dir flash:
+!renomear o arquivo config: rename flash:config.text flash:config.old
+!reinicializar o switch: boot
+!limpar o arquivo starup-config: earse startup-config
+!limpar as configuracoes de vlan: delete flash: vlan.dat
+!reinicializar o switch: reload
