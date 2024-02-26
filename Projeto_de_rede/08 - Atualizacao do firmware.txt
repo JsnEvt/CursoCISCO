@@ -1,0 +1,24 @@
+!Atualizacao do firmware
+!so executar este procedimento apos os bkps das imagens ios e config
+!nao alterar o nome da imagem
+!caso nao haja espaco na flash para a nova imagem, ele removera a anterior
+!utilizar o cabo console pq tera q reiniciar o equipamento
+
+copy tftp: flash:
+192.168.1.1
+c2960-lanbasek9-mz.150-2.SE4.bin
+show flash:
+
+configure terminal
+
+!atualizando a imagem do switch
+boot system c2960-lanbasek9-mz.150-2.SE4.bin
+
+end
+
+show boot
+
+write
+
+!reinicializando para carregar a nova imagem
+reload
