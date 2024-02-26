@@ -1,0 +1,75 @@
+
+..!Backup das configuracoes dos dispositivos.
+
+!Primeira etapa
+!visualizando a versao do hardware e do switch
+show version
+
+!Visualizando as informacoes da inicializacao do switch 2960
+!as informacoes sao importantes para o processo de quebra de senha do switch
+show boot
+
+!visualizando as informacoes do flash car(memoria de massa) do switch2960
+show flash
+dir flash
+
+
+!salvando RAM p/NVRAM
+copy running-config startup-config
+
+!salvando da RAM p/FLASH
+copy startup-config flash
+
+!salvando as config.memoria NVRAM p/servidor TFTP
+!TFTP utiliza o protocolo UDP na porta 
+! o protocolo UDP nao e confiavel, pois nao exige confirmacao
+!TFTP foi o escolhido pela Cisco
+dir nvram
+copy startup-config tftp
+192.168.1.1
+
+!salvando a imagem do cisco ios do switch 2960 para o servidor TFTP
+copy flash: tftp:
+c2960-lanbase-mz.122-25.FX.bin
+192.168.1.1
+
+show running-config
+
+!saindo do modo privilegiado
+disable
+
+
+!segunda etapa - bkp do roteador 1941
+
+!visualizando as informacoes do router 1941
+!em roteadores nao temos o comando show boot
+show version
+
+!visualizando as informacoes do flash card do router
+!no router o acesso a memoria flash e feito utilizando modulos externos
+show flash:
+dir flash0:
+
+!salvando ram p/nvram
+copy running-config startup-config
+
+!salvando ram p/flash
+copy startup-config flash:
+
+!salvando nvram p/servidor tftp
+dir nvram:
+copy startup-config tftp:
+192.168.1.1
+
+!salvando a imagem do cisco router p/servidor tftp
+copy flash: tftp:
+c1900-universalk9-mz.SPA.151-4.M4.bin
+192.168.1.1
+
+
+
+
+
+
+
+
