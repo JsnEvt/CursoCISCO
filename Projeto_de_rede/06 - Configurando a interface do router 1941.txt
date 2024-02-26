@@ -1,0 +1,32 @@
+!Configurando a interface do router 1941
+
+enable
+configure terminal
+
+!configurando a interface fisica GigabitEthernet 0/0
+interface giagabitethernet 0/0
+
+!conf.da interf.virtual
+description Interface de Gateway da Rede LAN Router rt-1941-1
+
+!conf.end.IPV4 da interf.fisica
+!essa interfface sera o end.de gateway da rede LAN
+ip address 192.168.1.254 255.255.255.0
+
+!Inicializando a interface
+!por padrao todas as interfaces estado desligada(shutdown)
+no shutdown
+
+end
+
+!salvando
+write
+
+show running-config
+
+!visualizando as configuracoes das interfaces
+show ip interface brief
+
+!visualizando detlahes da interface
+
+

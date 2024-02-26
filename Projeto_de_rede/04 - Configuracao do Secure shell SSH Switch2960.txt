@@ -1,0 +1,52 @@
+!Configuracao do Secure shell SSH Switch 2960
+
+enable
+configure terminal
+
+!Definicao do nome de dominio FQDN (Nome de dominio totalmeente qualificado)
+!o nome de ddominio serve como autenticacao e e utilizado pelo servico ssh
+ip domain-name miranda.evt
+
+!criacao de chave de criptografia e habilitacao do servico ssh server local
+!o ssh por padrao esta desabilitado no switch
+!recomendado utilizar criptografia de 1024 bits
+!no switch real utilizamos o comando: cripto key generate rsa usage-keys modulus 1024
+!RSA e o padrao de geracao de chaves
+!porta padrao ssh = 22
+crypto key generate rsa
+
+!habilitando a versao 2 do ssh server para corrigir falhas de seguranca
+ip ssh version 2
+
+!habilitando tempo de inatividade para novas conexoes ssh server
+!feito somente em segundos
+!isso esta relacionado ao tempo para autenticacao
+ip ssh time-out 60
+
+!habilitando o numero maximo de tentativas de conexoes simultaneas no ssh server
+!essa opcao aumenta o nivel de seguranca com forca bruta
+ip ssh authentication-retries 2
+
+!acessando as linhas virtuais de acesso remoto do switch
+line vty 0 4
+
+!essa medida e para utilizar apenas o protcolo de transporte seguro via ssh no switch
+transport input ssh
+
+!saindo
+end
+
+!salvando ram p/nvram
+copy running-config startup-config
+
+!visualizando as configuracoes da memoria ram
+show running-config
+
+!visualizando as configuracoes do ssh server
+show ip ssh
+
+!visualizando as chaves publicas
+show crypto key mypubkey rsa
+
+!visualizando as conexoes ativas do ssh server
+show ssh

@@ -1,0 +1,117 @@
+!configuracao do router 1941
+
+enable
+configure terminal
+
+!nome do router
+hostname rt-1941-1
+
+!servico de criptografia
+service password-encryption
+
+!habilitando data/hora detalhado nos logs
+!utilizado para analise detalhada na depuracao
+!nos logs de protocolo de roteamento
+service timestamps log datetimes msec
+service timestamps debug datetime msec
+
+!desativando a resolucao de nomes de dominio
+no ip domain-lookup
+
+!banner
+banner motd #AVISO: acesso autorizado somente a funcionarios#
+
+!habilitando o comprimento das senhas tipo 5 ou tipo 7
+!tipo 5 e mais seguro
+!para aumentar a seguranca do roteador
+!este recurso nao esta disponivel em switch layer 2 2960 ou 3 3560
+security passwords min-length 10
+
+!habilitando o uso senha do tipo5 secret para acessar o modo EXEC privilegiado
+enable secret miranda@evt
+
+!criacao de usuarios locais com privilegios diferenciados
+username everton secret miranda@evt
+username miranda password miranda@evt
+username jason privilege 15 secret miranda@evt
+
+!configuracao do nome de dominio FQDN
+ip domain-name miranda.evt
+
+!criacao da chave de criptografia e habilitacao do ssh server local
+crypto key generate rsa
+
+!servico ssh server versao 2
+ip ssh version 2
+
+!tempo de inatividade
+ip ssh time-out 60
+
+!tentativas de conexoes simultaneas
+ip ssh authentication-retries 2
+
+!bloqueio de tentativas de comunicacao com falhas no router
+! de 1 ate 65535 em segundos
+!nao disponivel switch 2 2960 e disponivel sw layer 3 3560
+login block-for 120 attempts 2 within 60
+
+!acessando a linha console (fora da banda)
+line console 0
+
+!forcando a fazer login local c/usuarios e senha do local do sw
+login local
+
+!habilitando password tipo7
+password miranda@evt
+
+!sincronizando as messangen de logs na tela
+logging synchronous
+
+!habilitando o tempo de inatividade de uso do console
+exec-timeout 5 30
+
+!habilidando a velocidade de envio e recebimento de dados
+!usando modem, a vel.precisa ser configurada
+!varia de equipamento para eqto. em segundos(0 ate 4294967295)
+speed 115200
+
+!recursos nao disponiveis no Packet Tracer
+!modem inout <-- configuracao de entrada/saida do modem
+!transport input all <-- protocolo de entrada
+!transport output all <-- protocolo de saida
+
+exit
+
+!acessando as linhas virtuais de acesso remoto ao router
+line vty 0 4
+
+login local
+
+!habilitando senha tipo7 
+password miranda@evt
+
+logging synchronous
+
+exec-timeout 5 30
+
+transport input ssh
+
+end
+
+!salvando em memoria
+write
+
+show running-config
+
+!visualizando as config.linhas virtuais ou fisicas
+show line
+
+
+
+
+
+
+
+
+
+
