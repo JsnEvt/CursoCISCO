@@ -1,0 +1,15 @@
+!Conf.servidor SMTP e POP3
+!SMTP = protocolo de mensagens de correio eletronico, porta 25, atualmente 587 para evitar SPAM
+!a porta 587 utiliza seguranca TLS
+!POP3 = protocolo de acesso/transferencia remoto ao correio eletronico, porta 110 ou 995 c/SSL/TLS
+!tb conhecida como POP3S
+!IMAP = protocolo de gerenciamento de correio eletronico
+!o IMAP deixa as mensagens no servidor de e-mail, trabalhando com o sincronismo entre a caixa postal e o cliente de e-mail.
+
+!MAPI (Messaging API) desenvolvido pela Microsoft. Usado como interface de comunicacao entre as aplicacoes
+!e o servidor Microsoft Exchange.
+!utiliza TCP nas portas 80 HTTP, 443 HTTPS, 143 IMAP, 993 IMAPS, 110P OP3, 995 POP3S e 587 SMTP.
+
+!ocorre um problema no envio/recebimento de email, onde nao consegue encontrar o servidor.
+!uma caixa de erro aparece na tela dentro do packet tracer.
+!apesar da consulta de comunicacao com o "nslookup" dar certo, pode ser uma limitacao/bloqueio do packet tracer.
