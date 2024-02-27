@@ -1,0 +1,39 @@
+!Configuracao do DNS nos Switch e no Router - resolucao de nomes
+
+enable
+configure terminal
+
+
+!por padrao o end. IPv4 de resolucao de nomes e 255.255.255.255(Broadcast)
+!habilitar esse recurso somente quando o servidor DNS estiver configurado, caso contrario, desabilitar
+ip domain-lookup
+
+!configuando o nome de dominio no switch e no router
+!esse servico ja foi configurado, ele e necessario para o servico do SSH Server
+!ip domain-name miranda.evt
+
+!configurando o IPv4 do servidor de DNS no sw e no router
+!apos a config.nao utilizara mais o broadcast
+!obs.configurar apenas um servidor de resolucao de nomes de DNS
+ip name-server 192.168.3.1
+
+!adicionando manualmente a resolucao de nomes e end.no sw e no router
+!a criacao de nomes locais facilita o acesso a equipamentos sem a dependencia do serv.de dns
+!e um procedimento manual e sua atualizacao nao e dinamica
+ip host servidor 192.168.3.1
+
+end
+
+write
+
+!visualizando as config.ram
+!|(pipe) filtra as inf.do running-config
+!opcoes de filtros(begin, exclude, include e section)
+show running-config | include ip
+
+!comando para testar a resolucao de nomes no sw ou router
+show hosts
+ping servidor
+ping server-02
+ping sw-l2-2960-3
+ssh -l jason sw-l2-2960-3
