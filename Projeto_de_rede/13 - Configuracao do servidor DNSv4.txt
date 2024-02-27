@@ -1,0 +1,7 @@
+!Configuracao servidor DNS v4
+!utilizado para gestao de nomes para computadores, e principalmente para fazer as resolucoes de nomes de enderecos ip.
+!porta 53
+!no cisco packet tracer as config.de sintaxe sao limitadas a: A, CNAME, SOA e NS.
+!no CPT temos a conf.de zona de pesquisa direta = nome p/ip
+!essas configuracoes foram feitas dentro do servidor na segunda topologia de 3 camadas.
+!em services / DNS.
