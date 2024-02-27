@@ -1,0 +1,17 @@
+!Configuracao do servidor FTP e HTTP/HTTPS
+!FTP = protocolo utilizado para transferencias de arquivos em rede
+!tb utiliza do TCP na porta padrao 21
+!HTTPS = implementacao do protocolo HTTP sobre uma camada de seguranca SSL/TLS = criptografia
+!onde se verifica a autenticidade do servidor e do cliente atraves de certificados digitais.
+!o protocolo padrao utilizado pelo HTTPS e o TCP na porta padrao 443
+
+!criado dois usuarios no FTP com varias permissoes
+!apos o login no ftp, e possivel transferir arquivos para o servidor
+!esses dados foram informados durante as configuracoes do servidor ftp.
+!para acessar o ftp:
+!ftp ftp.xxx.xxx, conforme usuario configurados
+!informe a senha
+!o prompt ficara com ftp>
+!para transferir um arquivo da maquina local p/o servidor ftp, use o comando put + nome do arquivo
+
+!para baixar um arquivo, utilizamos o comando get
