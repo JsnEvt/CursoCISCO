@@ -1,0 +1,55 @@
+!Configuracao do NTP no sw e router
+
+enable
+configure terminal
+
+!O NTP e o protocolo para sincronizar as datas/horas nos dispositivos para
+!para em caso de monitoramento/inspecao da rede para encontrar vulnerabilidades,
+!saber-se quando os dispositivos reagiram a tal ameaca, por exemplo.
+!tambem sao uteis para os logs dos equipamentos.
+
+!configuracao do servidor de ntp local
+!padrao - ligado.
+
+!chave = somente numeros
+!password
+
+!configurando o ntp nos sw e no router
+!fuso horario - dividio em nome da zona (BR) e UTC(Coordinated Universal Time)
+!No Brasil utilizamos quatro UTC diferentes,  em SP utilziamos o UTC de Brasilia -3
+clock timezone BR -3
+
+!habilitando o recurso de autenticacao do servidor ntp
+ntp authenticate
+
+!conf.chave e a senha de autenticacao do serv.ntp
+!chave = sequencia numerica e senha e criptografada usando MD5
+!essas informacoes sao configuradas no serv.ntp local
+ntp authentication-key 123456 md5 miranda
+
+!conf.o end.IPv4 ou nome do serv.ntp
+!em eqptos.reais permite-se mais servidores ntp
+!o sw l3 ou router pode ser o servidor de ntp na rede usando a opcao ntp master 1 (stratum)
+!no pct tracer nao e possivel usar nomes para serv.ntp, somente IPv4
+ntp server 192.168.3.1
+
+!habilitando o sincronismo da data e hora do ntp com o hardware
+!sincroniza data/hora do hardware e software
+!no sw 2960, este recurso nao esta disponivel para conf.
+ntp update-calendar
+
+end
+
+write
+
+!comandos para verificar a sincronia do ntp server
+show ntp status
+show ntp associations
+show clock
+
+
+
+
+
+
+
