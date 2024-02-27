@@ -1,0 +1,56 @@
+!Configuracao do SYSLOG sw e router - log de auditoria dos eqptos.da rede.
+!porta 514 - protocolo UDP com suporte a criptografia na porta 6514
+!o syslog trabalha com nivel de severidade (Traps) 0-7
+!0=emergencial, 1=alerta, 2=critico, 3=erro, 4=aviso, 5=notificacao, 6=informacao, 7-debug
+
+!conf.servidor de syslog - habilitado
+
+!conf.sw e router
+!as configuracoes de data/hora detalhadas ja foram definidas nas configuracoes base.
+!service timestamps log datetime msec
+
+!habilitando o recurso de log no sw e router
+!por padrao, os logs do sw e do router sao volateis
+!salvar os logs no servidor de syslog, garante a auditoria de falhas nos eqpts.
+logging on
+
+!conf.end.IPv4 do serv.de syslog
+logging host 192.168.3.1
+
+!conf.o nivel de log q sera enviado para o serv.syslog
+!no packet tracer temos apenas a opcao 7-debug
+logging trap debugging
+
+!habilitando os logs de autenticacao que sera enviado para o servidor syslog
+!para aumentar o nivel de seguranca e auditoria da rede
+!e recomendado habilitar o recurso de sucesso e falha de autenticacao
+!para aumentar a confiabilidade da rede
+!recurso nao disponivel no sw layer 2 2960
+login on-success log
+login on-failure log
+
+!habilitando o nivel de privilegio de autenticacao de usuario
+!mostra no momento da autenticacao qual o privilegio do usuario
+!facilita a administracao e monitoramento dos eqptos.utilizados.
+!nao disponivel no sw-l2-2960
+logging userinfo
+
+end
+
+write
+
+show running-config | include log
+
+!comando para verificar o envio das mensagens para o serv.syslog
+!debug e muito utilizado para analisar informacoes detalhadas de recursos ou comandos
+!muito cuidado ao habilitar o debug, pois, consome muitos recursos computacionais.
+!nao esquecer de desabilitar
+debug ip icmp
+ping server-02
+no debug ip icmp
+exit
+
+
+
+
+
