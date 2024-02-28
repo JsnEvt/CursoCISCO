@@ -1,0 +1,100 @@
+!configuracao do Speed, Duplex e MDIX no Switch e no roteador
+!configurando os modos das interfaces e de comunicacao
+!e recomendado utilizar o cabo console pq lida diretamente com as interfaces e ela ficara down.
+
+!etapa 1 - conf.sw layer 3
+enable
+configure terminal
+
+!acessando a interface da conexao com o servidor
+!conf.a interface(Porta de rede)
+interface fastEthernet 0/1
+description Porta de Conexao do Servidor SERVER-02
+
+!conf.a velocidade da interface
+!conexoes ethernet em switches possui velocidades padrao de 10,100 e 1000mbps
+!obs.quando configurado a velocidades diferentes, ela nao ficara UP
+speed 100
+
+!conf.modo de transmissao da interface(porta de rede)
+!conexoes fastethernet em sw podem trabalhar com os modos: half-duplex, full-duplex e auto
+!por padrao o recurso duplex esta configurado auto em todas as interfaces
+!half-duplex era o modo de transmissao em redes thernet 10mb com colisao(CSMA-CD)
+!Full-Duplex e o modo em redes FastEthernet e GagabitEthernet sem colisao
+!quando configurado como duplex na interf., ela nao ficara UP se a outra estiver configurada
+!com duplex diferente.
+!o padrao da interf.GigabitEthernet e full-duplex
+duplex full
+
+!MDIX esta configurado auto em todas as interfaces
+!tanto o cabo direto como o crossover podem ser utilizados nas comunicacoes
+!para fazer o cascateamento entre sw
+no mdix auto
+
+exit
+
+!acessando a interface (porta de rede) da conexao do access point
+interface FastEthernet 0/2
+description Porta de Conexao do Access Point N APT-01
+speed 100
+duplex full
+no mdix auto
+exit
+
+!Acessando a intef.(porta de rede) da conexao do router 1941
+interface FastEthernet 0/24
+description Porta de Conexao do Router 1941
+speed 100
+duplex full
+exit
+
+!Acessando todas as intef.(porta de rede) que nao estao sendo utilziadas
+!a opcao "range" configura uma faixa de interfaces
+!para portas nao consecutivas use a virgula
+!exemplo interface range fastEthernet 0/1 - 5, fastEthernet 0/10, fastEtherneet 0/15
+interface range FastEthernet 0/3 - 23
+
+!por seguranca, e recomendado desligar todas as interfaces que nao estao sendo utilizadas
+!todas as interfaces do sw estao no stauts NO SHUTDOWN (ligada), e na VLAN padrao 1 com DTP ativado
+!o DTP(dynamic trunking protocol) sera utilizado nas conf.de STP, VLAN, TRUNK
+shutdown
+exit
+
+!configurando as interface de trunk e backbone dos sw layer 2960
+interface range GigabitEthernet 0/1 - 2
+description Porta de Backbone com o Switch Layer 2 2960
+speed 1000
+no mdix auto
+
+end
+
+write
+
+!etapa 2 - configuracao do sw l2 2960
+enable
+configure terminal
+interface range FastEthernet 0/1 - 2
+description Porta de Conexao dos Desktop
+speed 100
+duplex full
+no mdix auto
+exit
+interface range FastEthernet 0/3 - 23
+shutdown
+exit
+interface range GigabitEthernet 0/1 - 2
+description Porta de Backbone com o Switch l3 3560
+speed 1000
+no mdix auto
+end
+
+write
+
+!visualizando as conf.na ram
+show running-config | section interface
+show ip interface brief
+show interfaces fastEthernet 0/1
+show interfaces fastEthernet 0/1 status
+
+
+
