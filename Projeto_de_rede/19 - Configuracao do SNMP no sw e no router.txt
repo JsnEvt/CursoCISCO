@@ -1,0 +1,36 @@
+!Configuracao do SNMP no sw e no router
+!recurso de monitoramento para acompanhar todas as comunicacoes de rede.
+!UDP - porta 161, 162 p/trap e portas seguras: 10161 e 10162
+!versoes do SNMP, v1, v2c(comunidade), v3
+!e dividido em gerente, agentem MIB(Managed Information Base) e OID(Object identifier)
+
+!configuracao do switch e do router
+enable
+configure terminal
+
+!configurando a comunidade com direito a leitura
+!o nome da comunidade de leitura tem que ser diferente da comunidade com direito a escrita
+!no CPT as conf.SMNP sao limitadas
+!o recurso somente leitura consegue ler apenas as informacoes da MID e OID
+snmp-server community evtro ro
+
+!conf.a comunidade do SNMP com direito a leitura e escrita
+!a versao 3 possui recursos de seguranca, criptografia e autenticacao
+!e recomendado configurar a seguranca do SNMP no sw e no router com uso de ACL
+snmp-server community evtrw rw
+
+end
+
+write
+
+show running-config | include snmp
+show snmp
+
+snmpget /v 3 /a 192.168.3.252 /c evtro /o .1.3.6.1.2.1.1.1.0
+snmpget /d
+!snmpget /d - este comando fornece informacoes de fabricacao sobre o dispositivo.
+
+
+
+
+

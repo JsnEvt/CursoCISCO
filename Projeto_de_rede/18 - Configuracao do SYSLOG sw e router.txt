@@ -5,6 +5,9 @@
 
 !conf.servidor de syslog - habilitado
 
+enable
+configure terminal
+
 !conf.sw e router
 !as configuracoes de data/hora detalhadas ja foram definidas nas configuracoes base.
 !service timestamps log datetime msec
