@@ -1,0 +1,75 @@
+!Configuracao DHC Snooping no sw
+!o intuito e proteger a rede, e nao apenas as portas dos swithes como foi feita na configuracao do arquivo anterior(22).
+!para que o usuario nao conecte um outro servidor ou equipamento que ofereca DHCP na rede afetando a seguranca.
+
+
+!primeira etapa: habilitando o recurso DHCP Snooping no sw l3 3560
+!serve para mitigar ataques de man-in-the-middle
+!o DHCP Snooping e associado sempre as VLANS e coloca todas as portas no status nao confiavel (Untrusted)
+!o padrao e desabilitado.
+!o DHCP possui uma base de dados local com informacoes de end.ip, mac.address e lease time
+ip dhcp snooping
+
+!configurando a seguranca na VLAN 1 (Padrao)
+!o DHCP monitora solicitacoes DHCP Client analisando os quadros da VLAN que esta associada na interface
+!e possivel adicionar varias VLANS para o monitoramento, separadas por espaco ou range
+ip dhcp snooping vlan 1
+
+!habilitando a opcao 82 das requisicoes do DHCP Server
+!esse recurso e importante quando os pacotes DHCP estao vindo dos sw de acesso para nao serem descartados
+ip dhcp snooping information option
+ip dhcp snooping information option allow-untrusted
+
+!conf.a interf.(porta rede) do servidor
+interface FastEthernet 0/1
+
+!conf.a confiabilidade da interface no servidor
+!portas confiaveis sao portas que tem permissao de enviar e receber pacotes dhcp
+!configurar a porta Trust somente nos servidores DHCP ou equipamentos que fornecem DHCP na rede.
+!esse recurso tb precisa ser configurado nas interfaces de Trunk dos sw de acesso
+ip dhcp snooping trust
+exit
+
+!configurando a interface do access point
+interface FastEthernet 0/23
+
+!configurando o limite de requisicoes de DHCP client por interface
+!cuidado com portas que possuem varios equipamentos associados a mesma, como AP, hub, etc.
+!o limite de conf.de requisicoes de DHCP client e de 1 a 2048
+ip dhcp snooping limit rate 10
+end
+
+write
+
+!segunda etapa: conf.switch layer 2 2960
+enable
+configure terminal
+ip dhcp snooping
+ip dhcp snooping vlan 1
+ip dhcp snooping information option
+ip dhcp snooping information option allow-untrusted
+!conf.interface de tronco
+interface range GigabitEthernet 0/1 - 2
+ip dhcp snooping trust
+exit
+!conf.interfaces acesso (Desktop)
+interface range FastEthernet 0/1 - 2
+ip dhcp snooping limit rate 5
+end
+
+write
+
+show running-config | section ip dhcp
+show running-config | section interface
+
+!testando a renovacao de enderecos ipv4 nos desktops
+ipconfig /release
+ipconfig /renew
+
+!verificando as informacoes DHCP Snooping no sw l2/3
+show ip dhcp snooping
+show ip dhcp snooping binding
+show ip dhcp snooping database
+
+
+
