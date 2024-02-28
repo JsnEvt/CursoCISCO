@@ -1,0 +1,130 @@
+!configuracao do switchport e port-security no switch
+!trata-se da seguranca das portas
+
+!primeira etapa: conf.sw-l3-3560
+enable
+
+configure terminal
+interface FastEthernet 0/1
+
+!Confg.a interface(porta de rede) para o modo de acesso(access)
+!uma interface de acesso pertence e trafega dados de uma unica VLAN
+!por padrao todos os sw que tem a VLAN 1 que nao pode ser removida e esta associada a todas as
+!interfaces
+!e recomendado configurar as interf. dos disp.finais p/o modo de acesso
+!tipos de configuracao: access - acesso(porta de acesso), trunk - (porta de tronco) e dynamic (porta dinamica)
+switchport mode access
+
+!recomendado desabilitar o recurso DTP que sao do tipo acesso
+switchport nonegotiate
+
+!desabilitando o rcurso de auto negociacao da interface(porta rede)
+!habilitar o recurso de port-security aumenta o nivel de seguranca da rede
+!o recurso port-security nao deve ser usado em interfaces de modo tronco
+!o port-security tem o objetivo de mitigar um ataque do tipo inundacao de MAC
+switchport port-security
+
+!conf.a quantidade maxima de end.fisicos(MAC Address) associado a uma interface(porta rede)
+!por padrao o sw Cisco suporta ate 1025 end.fisicos MAC em uma interface
+!tomar cuidado com interf.de servidores ou Access point, nessas interf.temos varios end.MAC
+!no CPT temos a limicao de 1 a 132 end.mac por interface
+!no CPT temos a limitacao de conf.de VLAN de acesso e voip
+!o recurso port-security maximum por padrao e configurado para apenas 1 end.mac
+switchport port-security maximum 1
+
+!Configurando o aprendizado do end.fisico da placa de rede mac
+!possibilita indicar qual end.esta associada a interf.
+!duas formas: static - statico ou stick - dinamico
+!o end.mac e aprendido quando o quadro entra pela primeira vez na porta do sw
+switchport port-security mac-address sticky
+
+
+!conf.a violacao de seguranca da interf.(porta de rede)
+!o recurso sera executado quando algum mac address nao constar nas configuracoes 
+!ou quando exceder a quantidade de mac address associada a uma interface
+!tres tipos de violacao: protect, restrict,  shutdown
+!por padrao e shutdown - bloquear a interface
+!o modo shutdown restringe a interf. com o servico habilitado, descartando todo o trafego, enviando
+!mensagens informativas de SNMP Trap, nao informando logs para o Syslog e nao incrementando 
+!a contagem de violacao
+switchport port-security violation shutdown
+
+exit
+
+!confg.a interface do access point
+interface FastEthernet 0/2
+switchport mode access
+switchport port-security
+switchport port-security mac-address sticky
+
+!aumentar o numero de end.mac da interf.access point
+!nesse cenario, o AP ira se comportar como um hub, tendo varios mac na mesma interf.
+switchport port-security maximum 5
+
+!alterando o modo de violacao da interf.para protect
+!o modo protect recusa os quadros com edn.desconhecidos (drop) sem bloquear a porta.
+switchport port-security violation protect
+
+!config.a validade de envelhecimento dos end.mac na interf.(porta de rede)
+!esse recurso remove automaticamente os end.mac de conf.apos um periodo de tempo.
+!no CPT e limitado (tempo de vida/envelhecimento/cache)
+!opcao time, type absolute ou inactivity e static 
+!no CPT opcao de tempo = 1 a 1440 minutos
+!devido a limitacao do recurso de aging, os mac aprendidos dinamicamente ou estatico nao serao removidos
+switchport port-security aging time 5
+exit
+
+!conf.a auto-recuperacao da conf.da interf.
+!caso tenha alguma violacao, o processo de retorno da conf.e manual
+!o recurso de errdisable e configurado com base na violacao e o tempo para retorno em minutos
+!no CPT esse recurso nao esta disponivel no sw l2 2960 e l3 3560
+!errdisable recovery cause psecure-violation
+!errdisbale recovery interval 600
+end
+
+write
+
+!segunda etapa: conf.sw l2 2960
+enable
+configure terminal
+interface range FastEthernet 0/1 - 2
+switchport mode access
+switchport nonegotiate
+switchport port-security
+switchport port-security maximum 1
+switchport port-security mac-address sticky
+
+!alterando o modo de violacao da interf. para restrict
+!recusa os quadros com end.desconhecidos.
+!e incrementa a contagem de violacao, enviando uma mensagem informativa.
+!(logs, syslog, SNMP Trap) e mantem os end.aprendidos.
+switchport port-security violation restrict
+end
+
+write
+
+show running-config | section interface
+
+!verfificando informacoes do switchport e port-security
+show mac address-table
+show port-security
+show port-security address
+show port-security interface fastEthernet 0/1
+show port-security interface fastEthernet 0/2
+show interface fastEthernet 0/1
+
+
+!limpando os contadores do port-security e reestabelecendo a conexao da interface
+interface fastEthernet 0/2
+shutdown
+no shutdown
+
+!as opcoes do comando clean no CPT nao estao disponiveis
+!clear port-security all
+!clear port-security dinamic
+!clear port-security stick
+
+!clear port security dynamic interface fastethernet0/2
+!errdisable recovery cause psecure-violation
+!errdisable recovery interval 6
+
