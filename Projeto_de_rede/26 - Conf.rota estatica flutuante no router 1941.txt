@@ -1,0 +1,84 @@
+!Conf.rota estatica flutuante no router 1941
+!fazendo uma rota redundante para caso aconteca algum problema entre os roteadores
+!exista uma rota alternativa.
+
+!Adicionando o modulo HWIC-2T (hIGH-SPEED WAN INTERFACE CARD) nos router 1941
+!router 1941-2 sera o DCE (Data circuit-terminating equipament) e router 1941-1 sera o DTE(data terminal equipament)
+
+!segunda etapa: conf.do router 1941-2
+enable
+show version
+show ip interface brief
+configure terminal
+
+!confg.a interface de interligacao com o router 1941-1
+!nomenclatura da interface: 0 = primeiro modulo do router, 0 = cartao HWIC e 0 = primeira interface serial
+interface serial 0/0/0
+
+description Interface de Backup WAN Serial com o Router 1941-1
+
+!end.ipv4 do router 1941-2
+ip address 10.0.0.6 255.255.255.252
+
+!confg.do clock rate (frequencia do relogio) da interf.serial
+!o clock rate define a taxa de bits transmitida na interf.serial, e uma definicao que afeta  o hardware
+!o clock rate so esta disponivel em interface seriais que estejam configuradas no modo DCE ou com cabo DCE
+!config.essa opcao em interf.serial DTE, ocorre erro: This command applies only to DCE interfaces
+!velocidades da interface serial varia de 300 a 4000000bps = 400Kbps ou 4Mbps)
+clock rate 2000000
+
+!confg.Bandwidth(largura de banda) da interf.serial
+!isso e uma indicacao da largura qua a interf.e capaz de transmitir, nao interf.hardware
+!ess ainformacao e utilizada nos protocolos de roteamento dinamico para determina a metrica do link
+!varia de 1 a 10000000 (kilo bits p/sec - kbps)
+!o valor do bandwidth e determinado da seguinte forma: valor do clock rate/1000 = valor kbps
+bandwidth 2000
+
+!conf.encapsulamento back-to-back(ida e volta) da interf.serial
+!determina a forma como os dados serao transmitidos em camada2
+!o padrao nos routers Cisco e o HDLC(high level data link control)
+!no CPT suportam o frame-relay e ppp(point-to-point protocol)
+!essa conf.nao e necessaria pq a interf.padrao serial e HDLC
+encapsulation hdlc
+
+!inicializando a interf.serial do router 1941-2
+no shutdown
+exit
+
+!conf.a rota estatica flutuante para atingir a rede 192.168.1.0/24
+!rota flutuante e igual a rota normal, a diferenca esta no valor da distancia admistrativa
+!rota estatica flutuante e muito utilizada em links de backup e redundancia das conexoes de WAN ou internet
+!quando o roteador aprende duas rotas para o mesmo destino, ele da preferencia a rota de menor distancia administrativa
+!os valores da distancia administrativa pode variar de 1 a 255(rota estatica tem distanc.adm.=1)
+!rota estatica flutuante para o mesmo destino nao aparece na tabela de roteamento, somente quando a interf.ou end.
+!de proximo salto estiver inacessivel ou down.
+ip route 192.168.1.0 255.255.255.0 serial 0/0/0 5
+end
+
+write
+
+!terceira etapa: conff.do router 1941-1
+enable
+configure terminal
+interface serial 0/0/0
+description Interface de backup WAN serial com o Router 1941-2
+ip address 10.0.0.5 255.255.255.252
+bandwidth 2000
+encapsulation hdlc
+no shutdown
+exit
+ip route 192.168.2.0 255.255.255.0 serial 0/0/0 5
+ip route 192.168.3.0 255.255.255.0 serial 0/0/0 5
+end
+write
+
+!visualizando
+show running-config | section interface
+show running-config | section ip route
+
+!verificando as informacoes das interf.e tabela de roteamento local
+show controller serial 0/0/0
+show ip interface brief
+show ip route
+show ip route connected
+show ip route static
