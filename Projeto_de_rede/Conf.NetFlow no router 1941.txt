@@ -1,0 +1,44 @@
+!Configuracao do NetFlow - monitoramento do trafego de entrada e de saida das interfaces para dimensionar os links
+!e analisar o trafego de rede.
+!o NetFlow foi substituido pelo IPFIX(internet protocol flow informatio export) com base na versao 9 do netflow.
+!o netflow e dividido em: flow exporter, flow collector e analysis application
+!protocolo padrao UDP porta 9996
+
+!primeira etapa: Conf.do coletor do netflow no servidor
+
+!segunda etapa: conf.do router 1941-2
+enable
+configure terminal
+
+!confg.o end.ipv4 do destino do coletor das informacoes do netflow
+ip flow-export destination 192.168.3.1 9996
+
+!config.a origem dos dados do fluxo do netflow
+!selecionar a interf.de origem facilita na analise do fluxo de dados do netflow
+!esse recurso e importante principalmente se o router utilizar NAT
+ip flow-export source gigabitEthernet 0/0
+
+!conf.a versao do netflow para habilitar os recursos existentes dessa versao
+!limitacao CPT 9, sem suporte a v10 IPFIX
+ip flow-export version 9
+
+!conf.a interface de rede de monitoramento do netflow
+interface gigabitEthernet 0/0
+
+!confg.a analise de fluxo de saida do netflow da interface
+!isso esta relacionado aos pacotes que saem da interface para outros destinos.
+!esse recurso e muito utilizado quando estamos analisando fluxo vindo da WAN para nossa LAN.
+ip flow egress
+
+!confg.o fluxo de entrada na interface do netflow
+!fluxo vindo da LAN p/outras redes
+ip flow ingress
+end
+
+write
+
+show running-config | section ip flow-export
+show running-config | section interface
+
+!verf.cache local do fluxo de dados do netflow
+show ip cache flow
