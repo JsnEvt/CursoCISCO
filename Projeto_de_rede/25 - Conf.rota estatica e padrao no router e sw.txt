@@ -1,0 +1,94 @@
+!Conf.rota estatica e padrao no router e sw
+!configuracao dos links de WAN e a parte de roteamento estatico
+
+!roteamento estatico = criacao de tabelas de roteamento fixas.
+!nao convem utilizar em grandes redes.
+
+!primeira etapa: configuracao do router 1941-2
+enable
+configure terminal
+
+config.a interface de interligacao com o router 1941-1
+interface GigabitEthernet 0/1
+
+!descricao da interf.
+description Interface de WAN com o Router 1941-1
+
+!conf.do end.ipv4 do router 1941-2
+!nas config.das interfaces de WAN, os end.ipv4/6 devem pertencer a mesma rede
+!p/confg.link ponto a ponto e recomendado utilizar end.ipv4/30
+!o CIDR /30 permite apenas 4 end.ipv4 validos: id rede, primeiro e ultimo end. ipv4 e broadcast
+ip address 10.0.0.2 255.255.255.252  
+!por padrao todas as interf.do rotador esta com status shutdown
+no shutdown
+exit
+
+!conf.a interf.de interligacao com sw l3 3560
+interface GigabitEthernet 0/0
+
+!descricao
+description Interface de LAN com Switch l3 3560
+
+!conf.velocidade do link e modo de transmissao da interf.
+!foram feitas na interf.(porta rede)sw l3
+speed 100
+duplex full
+
+!conf.ipv4 do router 1941
+!esse end. sera o gateway para o sw l3 3560
+ip address 192.168.2.254 255.255.255.0
+no shutdown
+exit
+
+
+!configurando a rota estatica para atingir a rede 192.168.1.0/24
+!rota estatica e indicada para links ponto a ponto em rede simples, com poucos roteadores
+!rota estatica tem distancia administrativa = 1
+!rota estatica tem metrica (custo) = 0
+!rota estatica pode encaminhar redes por: end.ipv4/6 de proximo salto ou interf.saida
+ip route 192.168.1.0 255.255.255.0 10.0.0.1
+ip route 192.168.3.0 255.255.255.0 192.168.2.1
+end
+
+write
+
+!segunda etapa: confg.sw l3 3560
+enable
+configure terminal
+!confg.a rota padrao para o gateway do router 1941-2
+!a rota padrao, tb conhecida como gateway de ultimo recurso, e utilizada quando nao ha rotas conhecidas
+!todos os pacotes para destinos desconhecidos da tabela do roteador sao enviados para o endereco de rota padrao
+!rota padrao 0.0.0.0/0 no CIDR, conhecida como rota dos quatro zeros.
+!a rota padrao e utilizada para indicar uma rede alem dos seus roteadores, links com ISP, WAN, VPN, Internet, etc.
+ip route 0.0.0.0 0.0.0.0 192.168.2.254
+end
+
+write
+
+!terceira etapa: Conf.router 1941-1
+enable
+configure terminal
+!conf.a interf.de ligacao com o router 1941-2
+interface GigabitEthernet 0/1
+description Interface de WAN com o router 1941-2
+ip address 10.0.0.1 255.255.255.252
+no shutdown
+exit
+
+!conf.rota estatica para agingir as redes 192.168.2.0/30 e 192.168.3.0/30
+ip route 192.168.2.0 255.255.255.0 GigabitEthernet 0/1
+ip route 192.168.3.0 255.255.255.0 GigabitEthernet 0/1
+end
+
+write
+
+show running-config | section interface
+show running-config | section ip route
+
+!verfificando as informacoes das interf.e tabela de roteamento local
+show ip interface brief
+show ip route
+
+!testando a conexao nos desktops da rede com o protocolo icmp
+ping 192.168.1.1
+
