@@ -1,0 +1,43 @@
+!Configuracao da interface roteada sw l3 3560
+!para habilitar a possibilidade do sw l3 conversar com o roteador em uma rede separada
+
+!habilitando o recurso de roteamento do sw l3 3560
+!permitindo utilizar os protocolos de roteamento em sw l3
+!somente se for necessario, padrao desligado
+!os recursos de roteamento permite utilizar protc.dinamicos como o RIP, RIPv2, EIGRP, OSPF no sw
+!o sw l3 nao foi projetado para trabalhar com roteamento WAN e sim, LAN
+ip routing
+
+!alterando o end.ipv4 na interf.virtual VDI do sw l3
+!com a ativacao do recurso de roteamento, as interf.virutais se tornam Gateway da Rede Local
+!utilizar sw layer para fazer o roteamento da LAN e mais rapido do que utilizar o router-on-stick
+!interface vlan 1
+ip address 192.168.3.254 255.255.255.0
+exit
+
+!Config.a interf.(porta rede) roteada sw l3
+interface fastEthernet 0/24
+
+!desabilitando o recurso de sw da porta conectada com o router
+!isso permite transformar a mesma em uma interface de rede, permitindo adicionar um end.ipv4 ou ipv6 e
+!utilizar como uma interf.roteada ou gateway
+no switchport
+
+!confg.end.ipv4 de conexao com a rede do router 1941-2
+ip address 192.168.2.1 255.255.255.0
+exit
+
+!conf.gateway do sw l3 3560
+!a confg.sera ulizada somente para o acesso remoto ou gerenciamento do sw, utilizando os protocolos SNMP, SYSLOG, etc.
+!para a porta roteada acessar outras redes e necessario a confg.do roteamento estatico, dinamico ou rota padrao
+ip default-gateway 192.168.2.254
+end
+
+write
+
+show running-config | section interface
+
+show ip interface brief
+show ip route
+
+
