@@ -1,0 +1,39 @@
+!configurando a interface de loopback
+!a interface de loopback e uma interface logica e virtual em um router ou sw l3 da Cisco
+!nao e uma interface fisica
+!estao sempre ativas e sempre disponiveis, mesmo se outras interffaces fisicas no roteador estiverem inativas,
+!utilizadas principalmente para testes de rede e para protocolos de roteamento dinamico
+!ex.OSPF(open shortest path first), BGP(border gateway protocol), RSRB(remote source-route bridging) entre outros
+!quantidade maxima de interf.de loopback no CPT e de 64 interf.
+!no CPT temos as opcoes de criacao de 0 ate 2.147.483.647 interface
+!o Cisco ios suporta interf.dos tipos de loopback, null, subinterfaces e tunel
+interface loopack 0
+
+
+!primeira etapa: conf.router 1941-2
+enable
+configure terminal
+interface loopback 0
+
+!descricao da interf.loopback
+description Interface de Loopback do router 1941-2
+ip address 10.0.0.253 255.255.255.252
+no shutdown
+end
+
+write
+
+!segunda etapa: Confg.router 1941-1
+enable
+configure terminal
+!conf.rota estatica para atingir a rede 10.0.0.252/30
+ip route 10.0.0.252 255.255.255.252 GigabitEthernet 0/1
+end
+
+write
+
+show running-config | section interface
+show ip interface brief
+ping 10.0.0.253
+tracert 10.0.0.252
+ssh -l jason 10.0.0.253
