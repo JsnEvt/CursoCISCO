@@ -1,0 +1,106 @@
+!Conf. dos protocolos CDP e LLDP - usado para descoberta de dispositivos na rede
+!CDP desenvolvidos pela Cisco
+!ativo nos sw e roteadores da Cisco
+!o CDP envia pacotes (packets CDP) a cada 60s., trabalha com o tempo de espera (hold time) de 180s e envia 
+!anuncios (advertisements) utiliznado o CDPv2 habilitado por padrao
+!LLDP (link layer discovey protocol) tem a mesma finalidade do CDP, com um padrao da industria(IEEE 802.1ab) 
+!que pode ser implementando por qualquer fabricante, fazendo dele uma solucao bem flexivel.
+!LLDP nao se encontra ativo nos roteadores da Cisco.
+!o LLDP envia anuncios a cada 30s, trabalha com o tempo de espera de anuncios (hold time advertisements) de 120s
+!e o atraso de inicializacao de interface de 2s.
+!tanto o CDP como o LLDP podem ser habilitados globalmnente(configure terminal) ou somente na interface
+!que se deseja enviar e receber informacoes sobre os equipamentos vizinhos(neighbors).
+
+!primeira etapa: Confg.CDP e LLDP nos sw l2 2960
+enable
+configure terminal
+
+!habilitando o recurso de descoberta de vizinhos globalmente
+cdp run
+
+!conf.os anuncios do cdp versao2
+!a versao 2 do CDP permite verificar informacoes de VLAN Nativa, Dominio VTP e o modo da porta(Duplex)
+!no CPT o recurso de conf.v2 do CDP nao esta disponivel
+!cdp advertise-v2
+
+!habilitando o recurso de descoberta de vizinhos LLDP globalmente
+!por padrao o LLDP esta desabilitado no sw l2 2960
+lldp run
+
+!conf.o recurso TLV(type, lenght, value) do LLDP globalmente
+!o LLDP oferece uma flexidade maior em termos de quantidade de informacoes que podem ser enviadas entre os vizinhos
+!o LLDP utiliza o TLV para codificar informacoes que serao enviadas e recebidas customizando a quantidade
+!de dados enviados, filtrando apenas as informacoes importantes entre os vizinhos.
+!no CPT os recursos TLV do LLDP nao estao disponivel para sua configuracao
+!lldp tlv-select
+end
+
+write
+
+
+!segunda etapa: conf.CDP e LLDP no sw l3 3560
+enable
+configure terminal
+!em sw l2/3, o recurso CDP e muito importante para dispositivos VoIP, esse recurso permite 
+!fazer a configuracao automatica da VLAN de VoIP nesses equipamentos.
+cdp run
+lldp run
+end
+write
+
+!terceira etapa: conf.do CDP e LLDP no router 1941-2
+enable
+configure terminal
+
+!desabilitando os recursos de descoberta do CDP e LLDP globalmente
+!e recomendado desbilitar em roteadores conectados diretamente na internet ou em redes desconhecidas
+!para nao enviar informacoes dos equipamentos, prejudicando a seguranca da rede e compromentendo a confiabilidade
+!no CPT, desabilitar o CDP ou LLDP globalmente e configurar apenas as interfaces que vao enviar anuncios entre vizinhos,
+!infelizmente nao funciona, sendo necessario deixar habilitado globalmente o CDP e o LLDP. 
+!para desabilitar: no cdp run, ou: no lldp run
+cdp run
+lldp run
+
+!conf.a interface gateway da rede lan para enviar e receber anuncios CDP E LLDP
+interface gigabitEthernet 0/0
+
+!habilitando o recurso de descoberta de vizinhos na CDP interface
+!o CDP permite enviar dados de informacoes entre vizinhos independente do tipo de enlace fisico utilizado
+!ex.conexoes ethernet (fast/giga), serial, etc.
+!essa configuracao nao aparece no running-config.
+cdp enable
+
+!habilitando o rec.de enviar e receber na interf.LLDP
+!no LLDP existe a possibilidade de controlar o fluxo de dados enviados entre os vizinhos
+!o LLDP so funciona em enlace ethernet (fast/giga), nao suportando outras midias
+!ela tb nao aparece no running-config
+lldp receive
+lldp transmit
+end
+
+write
+
+!quarta etapa: desabilitando o CDP e LLDP no router 1941-1
+enable
+configure terminal
+no cdp run
+no lldp run
+end
+write
+
+!visualizando
+show running-config | section lldp
+show running-config | section interface
+
+visualizando informacoes do CDP e LLDP
+show cdp
+show cdp entry *
+show cdp entry Router
+show cdp neighbors
+show cdp neighbors detail
+show cdp interface gigabitEthernet 0/0
+show lldp
+show lldp neighbors
+show lldp neighbors detail
+
+
