@@ -1,0 +1,5 @@
+!Config.do servidor IoT manager registrator
+!Internet das coisas precisa de uma atencao devido aos protocolos que circulam entre elas como por exemplo CFTV e VoIp
+!e possivel inserir instrucoes JavaScript para controlar algum arduino a partir das deteccoes de cameras.
+!dentro da camera, existe uma aba de programming onde isso e possivel.
+
