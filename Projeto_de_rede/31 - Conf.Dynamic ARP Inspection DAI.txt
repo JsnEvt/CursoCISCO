@@ -1,0 +1,51 @@
+!Conf.Dynamic ARP Inspection DAI
+!protocolo ARP e um recurso de seguranca que trabalha com o DHCP Snooping
+!o DAI e um recurso de seguranca que valida os pacotes ARP(address resolution protocol)
+!o DAI permite que um administrador de rede, intercepte, registre e descarte pacotes ARP com end.MAC invalidos para ligacoes
+!de end.IP. Esse ataque protege contra Man-in-the-middle ou ARP Poisoning(Envenenamento do ARP).
+
+!o DAI determina a validade de um pacote ARP com base no end.mac valido para as ligacoes de end.ip armazenadas em um banco de dados
+!de end.confiaveis. Esse banco e criado em tempo de execucao pelo DHCP Snooping, desde que esteja ativado nas VLANS dos sw.
+
+!o DAI trabalha igual e integrado com o snooping, monitorando portas confiaveis ou nao confiaveis
+
+!primeira etapa: conf.do dynamic ARP inspection no sw l3 3560
+enable
+configure terminal
+
+!habilitando a inspecao dinamica do arp na vlan 1
+!pode-se adicionar mais vlans para monitoramento, separadas por espacao ou range
+ip arp inspection vlan 1
+
+!conf.a interf.do serv. server-02
+interface fastEthernet 0/1
+
+!conf.a confiabilidade da inter.do servidor
+!portas confiaveis nao serao monitoradas ou bloqueadas os quadros do ARP pelo DAI
+!somente conf.a porta Trust somente quando tiver servidores DHCP ou equipamentos que fornecem DHCP na rede
+!esse recurso tb precisa ser configurado nas interf.de trunk dos sw de acesso
+ip arp inspection trust
+end
+write
+
+!segunda etapa: conf.Dynamic ARP insp.nos sw l2 2960
+enable
+configure terminal
+ip arp inspection vlan 1
+!conf.interf.trunk
+interface range gigabitEthernet 0/1-2
+ip arp inspection trust
+end
+write
+
+show running-config | section ip arp
+show running-config | section interface
+
+!visualizando inf.do Dynamic ARP inspection nos sw l2/3
+
+show ip arp inspection
+show ip arp inspection vlan 1
+show ip arp inspection statistics vlan 1
+show ip arp inspection interfaces
+show ip arp inspection gigabitEthernet 0/1
+show ip arp snooping binding
