@@ -1,0 +1,55 @@
+Configuracao STP e RSTP
+
+!Spanning Tree protocol da camada 2 e executado nas interligacoes dos sw l2/3
+!a finalidade e assegurar-se que vc nao crie ou exista caminhos redundantes (loops) de camada 2 na rede.
+!STP cria uma arvore de sw preseentes na rede e elege o sw de referencia, a partir do qual sera criada a arvore
+!esse sw e denominado de ponte raiz, ele e feito com base na prioridade e tambem com base no menor end.mac, em uma rede por padrao
+!pode existir apenas um sw root bridge na topologia.
+! a construcao da arvore da topologia do STP  e feita atraves do envio dos quadros de BPDU(bridge protocol unit). os bpdu`s sao frames 
+!enviados para a troca de informacoees tais como o Bridge ID e o custo de caminho de um no para sw root bridge.
+!as portas de interligacoes com outros sw da rede do root bridge sao denominadas: portas designadas - DP
+!as portas de interligacoes dos outros sw da rede que nao sao non-root bridge sao denominadas porta raiz RP!
+!a escolha do root port dos non-root bridge e feita com base no menor custo da interface(largura de banda) para o sw root bridge
+!as interfaces que nao sao consideradas designated port sao colocadas no modo de bloqueio - BLK
+!na topologia do STP, apenas uma porta e colocada no modo blocked port por padrao, somente um processo STP e criado para toda a arvore do STP
+!os 5 estagios da negociacao das portas STP: desativado, bloqueado, ouvindo, aprendendo, encaminhando
+!os tempos utilizados pelo Stp: avisos, atraso de encaminhamento e idade maxima
+!o RSTP - rapid spanning tree e o protocolo de deteccao de topologias de rede que fornece uma convergencia mais rapida para criar uma rede
+!sem lacos de loop de camada 2, padronizado pelo IEEE 802.1w e desenvolvido pela Cisco.
+!os 3 estagios de negociacao do RSTP sao: descartando, aprendendo e encaminhando.
+!os 4 status de negociacao das portas do RSTP sao: porta raiz, porta designada, porta alternativa, e porta backup
+!a vantagem do RSTP em conjunto com o PVST ou PVRST+ e a possibilidade de criar instancias individuais para cada VLAN na topologia do STP,
+!facilitando a administracao e configuracao dos melhores caminhos para cada VLAN na topologia da rede. 
+
+!primeira etapa: confg.sw l3 3560
+!utilizar cabo console para essa configuracao
+enable
+configure terminal
+!configurando o STP no sw l3 para ser a Root Bridge primario da topologia
+!geralmente sw l3 lque estao configurados na camada de distribuicao sao eleitos Root Bridge
+!na configuracao da prioridade do STP da VLAN do sw, termos as opcoes: 0 ate 61440(com incremento de 4096)
+!podemos adicionar mais VLAN`s para a arvore do STP, utilizando as mesmas opcoes do comando: ip arp inspection ou dhcp snooping
+!ex. spanning-tree vlan 10 20 30 | spanning-tree 10-30 | spanning-tree vlan 1,5,8,10-30
+!com essa configuracao, automaticamente o Bridge ID da sw sera decrementado, sendo eleito o Root Bridge com a menor Priority entre os demais sw l2 da rede.
+spanning-tree vlan 1 root primary
+
+!conf.RSTP para o modo rapid-PVST para acelerar o processo de convergencia da rede.
+!a conff.padrao do modo do STP dos sw Cisco e: PVST
+!no CPT temos o suporte aos modos STP: PVST OU RAPID-PVST
+!caso seja alterado o modo do STP em um sw na rede, e recomendado manter a padronizacao em todos os sw para o mesmo modo do STP, para nao ter
+!conflitos de eleicoes ou configuracoes erradas da arvore do STP.
+spanning-tree mode rapid-pvst
+end
+write
+
+!segunda etapa: conf.dos sw l2 2960
+enable
+configure terminal
+spanning-tree mode rapid-pvst
+end
+write
+
+show running-config | section spanning-tree
+
+show spanning-tree
+show spanningp-tree summary
