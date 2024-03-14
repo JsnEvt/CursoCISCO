@@ -1,0 +1,44 @@
+!LIMPANDO AS ROTAS ESTATICAS, DINAMICAS PARA REMOVER AS ROTAS ESTATICAS, PADRAO, FLUTUANTE PARA OS PROTOCOLOS IPV4/6
+
+!Remoção das Rotas Estática, Padrão e Flutuante dos Protocolos IPv4 e IPv6 e remoção das configurações dos Protocolos de 
+!Roteamento Dinâmico RIPv2 e RIPng.
+
+#Router 1941-1 da Primeira Topologia
+enable
+	configure terminal	
+		no ip route 0.0.0.0 0.0.0.0 GigabitEthernet0/1 
+		no ip route 0.0.0.0 0.0.0.0 Serial0/0/0 5
+		no ipv6 route ::/0 GigabitEthernet0/1 FE80::1002
+		no ipv6 route ::/0 Serial0/0/0 FE80::1006 5
+		end
+write
+
+#Router 1941-2 da Segunda Topologia
+enable
+	configure terminal
+		no ip route 192.168.1.0 255.255.255.0 10.0.0.1 
+		no ip route 192.168.3.0 255.255.255.0 192.168.2.1 
+		no ip route 192.168.1.0 255.255.255.0 Serial0/0/0 5
+		no ipv6 route 2001:ABCD:1234:3::/64 GigabitEthernet0/0 FE80::1
+		no ipv6 route 2001:ABCD:1234:1::/64 GigabitEthernet0/1 FE80::1001
+		no ipv6 route 2001:ABCD:1234:1::/64 Serial0/0/0 FE80::1005 5
+		no router rip
+		no ipv6 router rip 10
+		end
+write
+
+#Switch 3560-1 da Segunda Topologia
+enable
+	configure terminal
+		no ip route 0.0.0.0 0.0.0.0 192.168.2.254
+		no ipv6 route ::/0 FastEthernet0/24 FE80::254
+		end
+write
+
+#Router 2911-1 da Terceira Topologia
+enable
+	configure terminal
+		no router rip
+		no ipv6 router rip 10
+		end
+write
