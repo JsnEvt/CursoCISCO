@@ -1,0 +1,156 @@
+!O EIGRP para o IPv6 trabalha igual ao EIGRP para o IPv4, você pode configurar e controlar o Sistema Autônomo 
+!independente (separadamente). O diferencial do EIGRP para IPv6 em relação ao IPv4 é que o Processo Local do 
+!EIGRP IPv6 por padrão está desligado (shutdown) sendo necessário inicializar o AS do EIGRP (no shutdown) no 
+!final das configurações para que seja possível estabelecer adjacências entre os vizinhos
+
+!O EIGRP IPv6 segue o mesmo padrão de configuração do RIPng, as redes anunciadas são configuradas nas Interfaces
+!que possui os Endereços de Global Unicast que serão propagadas no Domínio do Protocolo EIGRP.
+
+!O EIGRP IPv6 utiliza Multicast para enviar e receber pacotes de Hellos com os vizinhos, utilizando o endereço 
+!de Multicast FF02::A 
+
+!PRIMEIRA ETAPA: Configuração do Router 2911-1 da Terceira Topologia
+enable
+	configure terminal
+		
+		!OBSERVAÇÃO IMPORTANTE: para o roteamento em Redes IPv6 é necessário habilitar o recurso de Unicast 
+		!Routing no Router ou Switch Layer 3, essa configuração já foi executada nas configurações dos endereços
+		!IPv6 das etapas anteriores
+		!ipv6 unicast-routing
+
+		!OBSERVAÇÃO IMPORTANTE: o EIGRP IPv6 também precisa de uma Interface de Loopback para o Router-ID, essa
+		!configuração já foi executada nas configurações do EIGRP IPv4
+		!interface loopback 10
+			!description Interface de Router-ID do EIGRP AS 10
+			!ipv6 address 172.16.0.4 255.255.255.255
+			!exit
+
+		!Configurando o AS do EIGRP IPv6 no Router 2911-1
+		!OBSERVAÇÃO: essa configuração é igual ao EIGRP IPv4, possuindo os mesmos recursos e configurações
+		ipv6 router eigrp 10
+			!OBSERVAÇÃO: o Router-ID do EIGRP IPv6 ainda é configurado no Formato de Octeto do Endereço IPv4
+			eigrp router-id 172.16.0.4
+			redistribute static
+			passive-interface default
+			no passive-interface gigabitEthernet 0/0/0.999
+			!OBSERVAÇÃO: não esquecer de inicializar o processo local do EIGRP IPv6 no Router ou Switch Layer 3
+			no shutdown
+			exit
+		
+		!OBSERVAÇÃO IMPORTANTE: o chaveiro será o mesmo que foi utilizado na autenticação do EIGRP IPv4
+		!key chain eigrp10
+			!key 10
+				!key-string miranda@evt
+				!exit
+			!exit
+
+		!Configurando a Interface de Vizinhança do EIGRP IPv6
+		interface gigabitEthernet 0/0/0.999
+			!OBSERVAÇÃO: configurando e habilitando o AS do EIGRP IPv6 nas Interfaces que tem os Endereços de Global
+			!Unicast para serem anunciados no Domínio do EIGRP IPv6 e configurando a autenticação MD5 da vizinhança.
+			ipv6 eigrp 10
+			ipv6 authentication mode eigrp 10 md5
+			ipv6 authentication key-chain eigrp 10 eigrp10
+			exit
+
+		!OBSERVAÇÃO IMPORTANTE: nessa topologia não é habilitado o Protocolo EIGRP IPv6 nas Sub-Interfaces das VLAN's 
+		!10, 20, 30, 40 e 50, essas Interfaces estão configuradas como DHCPv6 Stateful, o Endereço de Global Unicast 
+		!é diferente do Escopo criado, o acesso a essas redes e feito utilizando Rotas Estática, no AS do EIGRP IPv6 
+		!essas redes serão anunciadas para todos os Router ou Switch Layer 3 no Domínio do EIGRP IPv6 utilizando o 
+		!recurso de Redistribuição de Rotas.
+		interface gigabitEthernet 0/1
+			ipv6 eigrp 10
+			exit
+		interface gigabitEthernet 0/0.99
+			ipv6 eigrp 10
+			exit
+		interface gigabitEthernet 0/0.100
+			ipv6 eigrp 10
+			end
+write
+
+!SEGUNDA ETAPA: Configuração do Router 1941-2 da Segunda Topologia
+enable
+	configure terminal
+		ipv6 router eigrp 10
+			eigrp router-id 172.16.0.3
+			passive-interface loopback 0
+			!OBSERVAÇÃO: para formar vizinhança é utilizado do Endereço de Link Local do vizinho é a Interface que
+			!está conectada diretamente, no Cisco Packet Tracer só tem suporte ao Unicast em Interfaces Seriais.
+			neighbor FE80::1005 serial 0/0/0
+			no shutdown
+			exit
+		interface gigabitEthernet 0/1/0.999
+			ipv6 eigrp 10
+			ipv6 authentication mode eigrp 10 md5
+			ipv6 authentication key-chain eigrp 10 eigrp10
+			exit
+		interface gigabitEthernet 0/0
+			ipv6 eigrp 10
+			exit
+		interface gigabitEthernet 0/1
+			ipv6 eigrp 10
+			exit
+		interface serial 0/0/0
+			ipv6 eigrp 10
+		!ADENDO IMPORTANTE: adicionando a Interface de Loopback 0 nas configurações do EIGRP
+		interface loopback 0
+			ipv6 eigrp 10
+			end
+write
+
+!TERCEIRA ETAPA: Configuração do Switch Layer 3 da Segunda Topologia
+!OBSERVAÇÃO IMPORTANTE: no Cisco Packet Tracer, o Switch Layer 3 3560 não possui suporte para a configuração do
+!Protocolo EIGRP IPv6 (somente aos protocolos RIPng e OSPF), aparentemente essa falha está associada a versão do
+!IOS utilizada no simulador (versão 12.2, recomendado no mínimo a versão 15.x, diferente do Switch Layer 2 2960
+!no Cisco Packet Tracer não temos a opção de atualizar o IOS do Switch Layer 3), até o momento da gravação desse
+!vídeo, a falha relacionada a Interface Roteada do Switch Layer 3 3560 contínua (igual dos vídeos anteriores) 
+!enable
+	!configure terminal
+		!ipv6 router eigrp 10
+			!eigrp router-id 172.16.0.2
+			!no shutdown
+			!exit
+		!interface fastEthernet 0/24
+			!ipv6 eigrp 10
+			!exit
+		!interface vlan 1
+			!ipv6 eigrp 10
+			!end
+!write
+
+!QUARTA ETAPA: Configuração do Router 1941-1 da Primeira Topologia
+enable
+	configure terminal
+		ipv6 router eigrp 10
+			eigrp router-id 172.16.0.1
+			passive-interface gigabitEthernet 0/0
+			neighbor FE80::1006 serial 0/0/0
+			no shutdown
+		interface gigabitEthernet 0/0
+			ipv6 eigrp 10
+			exit
+		interface gigabitEthernet 0/1
+			ipv6 eigrp 10
+			exit
+		interface serial 0/0/0
+			ipv6 eigrp 10
+			end
+write
+
+!Visualizando as configurações da memória RAM
+show running-config | section interface Loopback10
+show running-config | section interface GigabitEthernet0/0/0.999
+show running-config | section ipv6 router
+show running-config | section key chain
+
+!Visualizando informações do Protocolo EIGRP IPv6
+show ipv6 protocols
+show ipv6 eigrp interfaces
+show ipv6 eigrp topology
+show ipv6 eigrp neighbors
+show ipv6 eigrp traffic
+show ipv6 route
+show ipv6 route summary 
+ping 2001:abcd:1234:8::8
+traceroute 2001:abcd:1234:8::8
