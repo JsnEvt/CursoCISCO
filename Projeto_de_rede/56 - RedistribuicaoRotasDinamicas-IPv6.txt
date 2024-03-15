@@ -1,0 +1,171 @@
+!PRIMEIRA ETAPA: Configuração do Router 1941-2 com o Protocolo OSPFv3, RIPng e EIGRP
+enable
+	configure terminal
+
+		!Configuração do Processo Local do OSPFv3 IPv6
+		!ADENDO IMPORTANTE: devido ao erro da Interface Roteada do Switch Layer 3, o Prefixo da Rede do
+		!Segundo Router 1941-2 2001:abcd:1234:2::/64 não será propagada para os Routers 1941-1 e 2911-1,
+		!devido ao fato da Tabela de Roteamento do OSPFv3 está vazia.
+ 		ipv6 router ospf 10
+			router-id 172.16.0.3
+			auto-cost reference-bandwidth 1000
+			passive-interface default
+			no passive-interface gigabitEthernet 0/0
+			log-adjacency-changes detail
+			default-information originate
+			
+			!Configurando a Redistribuição de Rotas entre o Protocolo OSPFv3 e os protocolos RIPng e EIGRP
+			redistribute rip 10 metric 1000
+			redistribute eigrp 10 metric 1000
+			exit
+
+		!Configurando a Interface Local do Protocolo OSPFv3
+		interface gigabitEthernet 0/0
+			ipv6 ospf 10 area 0
+			ipv6 ospf cost 100
+			exit
+		interface loopback 0
+			ipv6 ospf 10 area 0
+			exit
+
+		!Configuração do Processo Local do RIPng IPv6
+		ipv6 router rip 10
+
+			!Configurando a Redistribuição de Rotas entre o Protocolo RIPng e os protocolos OSPFv3 e EIGRP
+			redistribute ospf 10 metric 1
+			redistribute eigrp 10 metric 2
+			exit
+		
+		!Configurando as Interfaces Locais do Protocolo RIPng
+		interface gigabitEthernet 0/1
+			ipv6 rip 10 enable
+			exit
+		interface serial 0/0/0
+			ipv6 rip 10 enable
+			exit
+
+		!Configurando o Sistema Autônomo do Protocolo EIGRP IPv6
+		ipv6 router eigrp 10
+			eigrp router-id 172.16.0.3
+			passive-interface default
+			no passive-interface gigabitEthernet 0/1/0.999
+
+			!Configurando a Redistribuição de Rotas entre o Protocolo EIGRP e os protocolos OSPFv3 e RIPng
+			redistribute ospf 10 metric 1544 2000 255 1 1500
+			redistribute rip 10 metric 1544 2000 255 1 1500
+			no shutdown
+			exit
+
+		!Configurando a Interface Local do Protocolo EIGRP
+		interface gigabitEthernet 0/1/0.999
+			ipv6 eigrp 10
+			end
+write
+
+!SEGUNDA ETAPA: Configuração do Switch Layer 3 3560 com o Protocolo OSPFv3
+!OBSERVAÇÃO IMPORTANTE: igual nas configurações dos Protocolos RIPng e EIGRP IPv6, o suporte ao Protocolo 
+!IPv6 do Switch Layer 3 3560 no Cisco Packet Tracer é limitado, a falha da Interface Roteada do Switch não 
+!permite fazer a comunicação com o Router 1941-2. Nesse cenário será feito a troca de LSA entre o Switch e 
+!Router, mais a troca da tabela de roteamento não será feita.
+enable
+	configure terminal
+		
+		!Configuração do Processo Local do OSPFv3 IPv6
+		ipv6 router ospf 10
+			router-id 172.16.0.2
+			auto-cost reference-bandwidth 1000
+			log-adjacency-changes detail
+			exit
+		
+		!Configurando as Interfaces Locais do Protocolo OSPFv3 IPv6
+		interface fastEthernet 0/24
+			ipv6 ospf 10 area 0
+			exit
+		interface vlan 1
+			ipv6 ospf 10 area 0
+			end
+write
+
+!TERCEIRA ETAPA: Configuração do Router 1941-1 com o Protocolo RIPng IPv6
+!ADENDO IMPORTANTE: aparentemente existe um Bug no Cisco Packet Tracer quando você tenta pingar o endereço
+!IPv6 Global Unicast do Google quando está trabalhando com Redistribuição de Rotas, o ping não é executado 
+!com sucesso no Router, nos Desktops esse procedimento funciona corretamente.
+enable
+	configure terminal
+
+		!Configurando o Processo Local do Protocolo RIPng IPv6
+		ipv6 router rip 10
+			exit
+		
+		!Configurando as Interfaces Locais do Protocolo RIPng IPv6
+		interface gigabitEthernet 0/0
+			ipv6 rip 10 enable
+			exit
+		interface gigabitEthernet 0/1
+			ipv6 rip 10 enable
+			exit
+		interface serial 0/0/0
+			ipv6 rip 10 enable
+			end
+write
+
+!QUARTA ETAPA: Configuração do Router 2911-1 com o Protocolo EIGRP IPv6
+enable
+	configure terminal
+
+		!Configurando o Processo Local do Protocolo EIGRP IPv6
+		ipv6 router eigrp 10
+			eigrp router-id 172.16.0.4
+			redistribute static
+			passive-interface default
+			no passive-interface gigabitEthernet 0/0/0.999
+			no shutdown
+			exit
+
+		!Configurando as Interfaces Locais do Protocolo EIGRP IPv6
+		interface gigabitEthernet 0/0/0.999
+			ipv6 eigrp 10
+			exit
+		interface gigabitEthernet 0/1
+			ipv6 eigrp 10
+			exit
+		interface gigabitEthernet 0/0.99
+			ipv6 eigrp 10
+			exit
+		interface gigabitEthernet 0/0.100
+			ipv6 eigrp 10
+			end
+write
+
+!Visualizando as configurações da memória RAM
+show running-config | section ipv6 router
+
+!Visualizando informações do Protocolo OSPFv3 IPv6
+show ipv6 protocols
+show ipv6 route
+ping 2001:abcd:1234:8::8
+traceroute 2001:abcd:1234:8::8
+tracert 2001:abcd:1234:8::8
+
+!DICA IMPORTANTE: utilizar todos os comandos de verificação dos Protocolos Dinâmicos:
+!Protocolo RIPng
+show ipv6 rip database
+
+!Protocolo EIGRP
+show ipv6 eigrp interfaces 10
+show ipv6 eigrp topology 10
+show ipv6 eigrp neighbors 10
+show ipv6 eigrp traffic 10
+
+!Protocolo OSPFv3
+show ipv6 ospf
+show ipv6 ospf border-routers 
+show ipv6 ospf interface
+show ipv6 ospf neighbor 
+show ipv6 ospf neighbor detail
+show ipv6 ospf database
+show ipv6 ospf database external 
+show ipv6 ospf database router
+show ipv6 ospf database link
+show ipv6 ospf database network 
+show ipv6 ospf database prefix 
